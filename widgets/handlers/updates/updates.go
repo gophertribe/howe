@@ -1,6 +1,7 @@
 package updates
 
 import (
+	"context"
 	"fmt"
 	"os/exec"
 	"strconv"
@@ -13,7 +14,9 @@ import (
 	"github.com/victorgama/howe/widgets"
 )
 
-func handle(payload map[string]interface{}, output chan interface{}, wait *sync.WaitGroup) {
+var _ widgets.HandlerFunc = handle
+
+func handle(_ context.Context, payload map[string]any, output chan any, wait *sync.WaitGroup) {
 	result, err := exec.Command("sh", "-c", "apt-get -s -o Debug::NoLocking=true upgrade | grep ^Inst | wc -l").Output()
 
 	if err != nil {

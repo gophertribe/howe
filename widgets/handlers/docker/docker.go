@@ -3,13 +3,15 @@ package docker
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"fmt"
 	"regexp"
 	"strings"
 	"sync"
 
 	"github.com/fatih/color"
-	dockerApi "github.com/fsouza/go-dockerclient"
+	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/client"
 
 	"github.com/victorgama/howe/helpers"
 	"github.com/victorgama/howe/widgets"
@@ -17,7 +19,7 @@ import (
 
 const defaultDockerSock = "unix:///var/run/docker.sock"
 
-func handle(payload map[string]interface{}, output chan interface{}, wait *sync.WaitGroup) {
+func handle(ctx context.Context, payload map[string]any, output chan any, wait *sync.WaitGroup) {
 	rawContainers, ok := payload["containers"]
 	if !ok {
 		output <- fmt.Errorf("docker: containers list not declared")
@@ -26,7 +28,7 @@ func handle(payload map[string]interface{}, output chan interface{}, wait *sync.
 	}
 
 	containers := []string{}
-	if containerArr, ok := rawContainers.([]interface{}); ok {
+	if containerArr, ok := rawContainers.([]any); ok {
 		for i, c := range containerArr {
 			if n, ok := c.(string); ok {
 				containers = append(containers, n)
@@ -50,15 +52,16 @@ func handle(payload map[string]interface{}, output chan interface{}, wait *sync.
 		}
 	}
 
-	docker, err := dockerApi.NewClient(dockerSock)
+	cli, err := client.NewClientWithOpts(client.WithHost(dockerSock))
 	if err != nil {
 		helpers.ReportError(fmt.Sprintf("docker: %s", err))
 		output <- fmt.Sprintf("Docker: Could not connect on %s", dockerSock)
 		wait.Done()
 		return
 	}
+	defer cli.Close()
 
-	dockerContainers, err := docker.ListContainers(dockerApi.ListContainersOptions{All: true, Limit: 10000})
+	dockerContainers, err := cli.ContainerList(ctx, container.ListOptions{All: true})
 	if err != nil {
 		helpers.ReportError(fmt.Sprintf("docker: %s", err))
 		output <- fmt.Sprintf("Docker: Error enumerating containers.")
@@ -105,7 +108,7 @@ func longestString(list [][]string) int {
 	return longest
 }
 
-func findContainersStatic(containers *[]dockerApi.APIContainers, name string, results *[][]string) {
+func findContainersStatic(containers *[]container.Summary, name string, results *[][]string) {
 	r := "not found"
 	f := color.FgRed
 	for _, c := range *containers {
@@ -118,8 +121,10 @@ func findContainersStatic(containers *[]dockerApi.APIContainers, name string, re
 		}
 
 		if found {
-			r = helpers.Titleize(c.State) + ", " + c.Status
-			switch strings.ToLower(c.State) {
+			state := c.State
+			status := c.Status
+			r = helpers.Titleize(state) + ", " + status
+			switch strings.ToLower(state) {
 			case "paused", "created":
 				f = color.FgWhite
 			case "restarting":
@@ -135,7 +140,7 @@ func findContainersStatic(containers *[]dockerApi.APIContainers, name string, re
 	*results = tmpResults
 }
 
-func findContainersRegex(containers *[]dockerApi.APIContainers, name string, results *[][]string) {
+func findContainersRegex(containers *[]container.Summary, name string, results *[][]string) {
 	r := "not found"
 	f := color.FgRed
 	re, err := regexp.Compile(name)
@@ -161,8 +166,10 @@ func findContainersRegex(containers *[]dockerApi.APIContainers, name string, res
 		}
 
 		if found {
-			r = helpers.Titleize(c.State) + ", " + c.Status
-			switch strings.ToLower(c.State) {
+			state := c.State
+			status := c.Status
+			r = helpers.Titleize(state) + ", " + status
+			switch strings.ToLower(state) {
 			case "paused", "created":
 				f = color.FgWhite
 			case "restarting":

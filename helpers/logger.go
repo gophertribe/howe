@@ -1,22 +1,16 @@
 package helpers
 
 import (
-	"github.com/hashicorp/go-syslog"
+	"log/slog"
 )
 
-var logger gsyslog.Syslogger
-var loggerRunning bool
+var logger slog.Logger
 
-func init() {
-	var err error
-	logger, err = gsyslog.NewLogger(gsyslog.LOG_ERR, "USER", "howe")
-	loggerRunning = (err == nil)
+func SetupLogger(log slog.Logger) {
+	logger = log
 }
 
 // ReportError is used by Widgets to report internal errors to the syslog
 func ReportError(data string) {
-	if !loggerRunning {
-		return
-	}
-	logger.Write([]byte(data))
+	logger.Error(data)
 }

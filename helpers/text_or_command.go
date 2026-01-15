@@ -8,7 +8,7 @@ import (
 // TextOrCommand interprets an input payload in order to determine whether it
 // contains a static string, an command based on a string, or a command based on
 // an array of arguments
-func TextOrCommand(module string, payload map[string]interface{}) (string, error) {
+func TextOrCommand(module string, payload map[string]any) (string, error) {
 	var toWrite string
 	txt, ok := payload["text"]
 	if ok {

@@ -3,6 +3,7 @@ package disks
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"fmt"
 	"math"
 	"strconv"
@@ -16,7 +17,9 @@ import (
 	"github.com/victorgama/howe/widgets"
 )
 
-func handle(payload map[string]interface{}, output chan interface{}, wait *sync.WaitGroup) {
+var _ widgets.HandlerFunc = handle
+
+func handle(_ context.Context, payload map[string]any, output chan any, wait *sync.WaitGroup) {
 	rawDisks, ok := payload["disks"]
 	if !ok {
 		output <- fmt.Errorf("disks: disks list not declared")

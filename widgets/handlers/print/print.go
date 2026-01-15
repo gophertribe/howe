@@ -1,13 +1,16 @@
 package print
 
 import (
+	"context"
 	"sync"
 
 	"github.com/victorgama/howe/helpers"
 	"github.com/victorgama/howe/widgets"
 )
 
-func handle(payload map[string]interface{}, output chan interface{}, wait *sync.WaitGroup) {
+var _ widgets.HandlerFunc = handle
+
+func handle(_ context.Context, payload map[string]any, output chan any, wait *sync.WaitGroup) {
 	toWrite, err := helpers.TextOrCommand("print", payload)
 	if err != nil {
 		output <- err

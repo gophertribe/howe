@@ -3,10 +3,10 @@ package banner
 import (
 	"bytes"
 	"compress/gzip"
+	"context"
 	"encoding/base64"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -47,9 +47,6 @@ func loadDefaultFiglet() ([]byte, error) {
 	}
 
 	outBuf := bytes.NewBuffer([]byte{})
-	if err != nil {
-		return nil, err
-	}
 
 	_, err = io.Copy(outBuf, zr)
 	if err != nil {
@@ -77,10 +74,10 @@ func loadFiglet(from string) (*figletlib.Font, error) {
 			from = filepath.Join(defaultFigletsDir, from)
 		}
 
-		dat, err := ioutil.ReadFile(from)
+		dat, err := os.ReadFile(from)
 		if err != nil {
 			if os.IsNotExist(err) {
-				helpers.ReportError(fmt.Sprintf("banner: Falling back to default font due to error: %s", err))
+				helpers.ReportError(fmt.Sprintf("banner: falling back to default font due to error: %s", err))
 				return loadFiglet("")
 			}
 			return nil, err
@@ -98,14 +95,19 @@ func colorizeOutput(value, colorName string) string {
 			Reader: strings.NewReader(value),
 			Writer: output,
 		}
-		r.Paint()
-		return string(output.Bytes())
+		err := r.Paint()
+		if err != nil {
+			return ""
+		}
+		return output.String()
 	}
 	foreground := color.New(availableColors[colorName]).SprintFunc()
 	return foreground(value)
 }
 
-func handle(payload map[string]interface{}, output chan interface{}, wait *sync.WaitGroup) {
+var _ widgets.HandlerFunc = handle
+
+func handle(_ context.Context, payload map[string]any, output chan any, wait *sync.WaitGroup) {
 	toWrite, err := helpers.TextOrCommand("banner", payload)
 	if err != nil {
 		output <- err
@@ -142,7 +144,7 @@ func handle(payload map[string]interface{}, output chan interface{}, wait *sync.
 		for k := range availableColors {
 			colors = append(colors, k)
 		}
-		output <- fmt.Errorf("invalid color; valid values are " + strings.Join(colors, ", "))
+		output <- fmt.Errorf("invalid color; valid values are %s", strings.Join(colors, ", "))
 		wait.Done()
 		return
 	}
@@ -156,7 +158,6 @@ func handle(payload map[string]interface{}, output chan interface{}, wait *sync.
 
 	output <- colorizeOutput(strings.TrimSuffix(figletlib.SprintMsg(toWrite, font, 80, font.Settings(), "left"), "\n"), fontColor)
 	wait.Done()
-	return
 }
 
 func init() {

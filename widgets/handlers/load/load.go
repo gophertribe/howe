@@ -1,6 +1,7 @@
 package load
 
 import (
+	"context"
 	"fmt"
 	"sync"
 
@@ -10,7 +11,9 @@ import (
 	"github.com/victorgama/howe/widgets"
 )
 
-func handle(payload map[string]interface{}, output chan interface{}, wait *sync.WaitGroup) {
+var _ widgets.HandlerFunc = handle
+
+func handle(_ context.Context, payload map[string]any, output chan any, wait *sync.WaitGroup) {
 	avg := sigar.LoadAverage{}
 	err := avg.Get()
 	if err != nil {

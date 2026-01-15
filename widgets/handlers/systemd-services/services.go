@@ -3,18 +3,19 @@ package systemdservices
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"fmt"
 	"strings"
 	"sync"
 
-	"github.com/coreos/go-systemd/dbus"
+	"github.com/coreos/go-systemd/v22/dbus"
 	"github.com/fatih/color"
 
 	"github.com/victorgama/howe/helpers"
 	"github.com/victorgama/howe/widgets"
 )
 
-func handle(payload map[string]interface{}, output chan interface{}, wait *sync.WaitGroup) {
+func handle(ctx context.Context, payload map[string]any, output chan any, wait *sync.WaitGroup) {
 	rawServices, ok := payload["services"]
 	if !ok {
 		output <- fmt.Errorf("systemd-services: services list not declared")
@@ -23,7 +24,7 @@ func handle(payload map[string]interface{}, output chan interface{}, wait *sync.
 	}
 
 	services := []string{}
-	if servicesArr, ok := rawServices.([]interface{}); ok {
+	if servicesArr, ok := rawServices.([]any); ok {
 		for i, c := range servicesArr {
 			if n, ok := c.(string); ok {
 				services = append(services, n)
@@ -39,15 +40,15 @@ func handle(payload map[string]interface{}, output chan interface{}, wait *sync.
 		return
 	}
 
-	conn, err := dbus.New()
+	conn, err := dbus.NewWithContext(ctx)
 	if err != nil {
 		helpers.ReportError(fmt.Sprintf("systemd-services: %s", err))
-		output <- fmt.Sprintf("systemd-services: Could not connect.")
+		output <- fmt.Sprintf("systemd-services: Could not connect", err)
 		wait.Done()
 		return
 	}
 
-	list, err := conn.ListUnits()
+	list, err := conn.ListUnitsContext(ctx)
 	if err != nil {
 		helpers.ReportError(fmt.Sprintf("systemd-services: %s", err))
 		output <- fmt.Sprintf("systemd-services: Cannot enumerate units.")
