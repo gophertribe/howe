@@ -5,8 +5,10 @@ import (
 	"context"
 	"embed"
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 	"sync"
 
@@ -158,6 +160,43 @@ func handle(_ context.Context, payload map[string]any, output chan any, wait *sy
 
 	output <- colorizeOutput(strings.TrimSuffix(figletlib.SprintMsg(toWrite, font, 80, font.Settings(), "left"), "\n"), fontColor)
 	wait.Done()
+}
+
+// ListAvailableFonts returns a list of all available embedded font names (without .flf extension)
+func ListAvailableFonts() ([]string, error) {
+	entries, err := embeddedFonts.ReadDir("fonts")
+	if err != nil {
+		return nil, fmt.Errorf("failed to read embedded fonts: %w", err)
+	}
+
+	fonts := make([]string, 0, len(entries))
+	for _, entry := range entries {
+		// entry is of type fs.DirEntry
+		if entry.IsDir() {
+			continue
+		}
+		if strings.HasSuffix(entry.Name(), ".flf") {
+			fontName := strings.TrimSuffix(entry.Name(), ".flf")
+			fonts = append(fonts, fontName)
+		}
+	}
+
+	// Reference fs package to satisfy compiler
+	_ = fs.FileMode(0)
+
+	sort.Strings(fonts)
+	return fonts, nil
+}
+
+// PreviewFont generates a preview of the given font with the specified text
+func PreviewFont(fontName, text string) (string, error) {
+	font, err := loadFiglet(fontName)
+	if err != nil {
+		return "", fmt.Errorf("failed to load font '%s': %w", fontName, err)
+	}
+
+	preview := figletlib.SprintMsg(text, font, 80, font.Settings(), "left")
+	return strings.TrimSuffix(preview, "\n"), nil
 }
 
 func init() {
