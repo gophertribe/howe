@@ -8,6 +8,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strings"
 	"sync"
@@ -35,6 +36,14 @@ var availableColors = map[string]color.Attribute{
 	// Value of this next key isn't really used, but the key must be present.
 	"rainbow": color.FgWhite,
 }
+
+// textSegment represents a segment of text with its associated color
+type textSegment struct {
+	text  string
+	color string
+}
+
+var colorMarkerRegex = regexp.MustCompile(`\[([a-z]+|reset)\]`)
 
 func loadFiglet(from string) (*figletlib.Font, error) {
 	var buf []byte
@@ -107,6 +116,121 @@ func colorizeOutput(value, colorName string) string {
 	return foreground(value)
 }
 
+// parseColorMarkers parses text with color markers like [red]text[green]more[reset]
+// Returns a slice of text segments with their associated colors
+func parseColorMarkers(text string) []textSegment {
+	var segments []textSegment
+	currentColor := ""
+
+	// Find all color markers
+	matches := colorMarkerRegex.FindAllStringSubmatchIndex(text, -1)
+	if len(matches) == 0 {
+		// No color markers found, return entire text with default color
+		if text != "" {
+			segments = append(segments, textSegment{text: text, color: ""})
+		}
+		return segments
+	}
+
+	lastIndex := 0
+	for _, match := range matches {
+		// Add text before this marker
+		if match[0] > lastIndex {
+			textBefore := text[lastIndex:match[0]]
+			if textBefore != "" {
+				segments = append(segments, textSegment{text: textBefore, color: currentColor})
+			}
+		}
+
+		// Extract color name from marker
+		colorName := text[match[2]:match[3]]
+		if colorName == "reset" {
+			currentColor = ""
+		} else {
+			// Validate color exists
+			if _, ok := availableColors[colorName]; ok {
+				currentColor = colorName
+			}
+		}
+
+		lastIndex = match[1]
+	}
+
+	// Add remaining text after last marker
+	if lastIndex < len(text) {
+		remainingText := text[lastIndex:]
+		if remainingText != "" {
+			segments = append(segments, textSegment{text: remainingText, color: currentColor})
+		}
+	}
+
+	return segments
+}
+
+// applyInlineColors processes text with inline color markers and applies colors to figlet output
+func applyInlineColors(text string, font *figletlib.Font, defaultColor string) (string, error) {
+	segments := parseColorMarkers(text)
+
+	// If no color markers found, use default behavior
+	if len(segments) == 1 && segments[0].color == "" {
+		figletOutput := figletlib.SprintMsg(text, font, 80, font.Settings(), "left")
+		return colorizeOutput(strings.TrimSuffix(figletOutput, "\n"), defaultColor), nil
+	}
+
+	// Generate figlet for each segment and store with segment info
+	type segmentData struct {
+		seg    textSegment
+		output []string
+	}
+	var segmentDataList []segmentData
+	for _, seg := range segments {
+		if seg.text == "" {
+			continue
+		}
+		figletOutput := figletlib.SprintMsg(seg.text, font, 80, font.Settings(), "left")
+		lines := strings.Split(strings.TrimSuffix(figletOutput, "\n"), "\n")
+		segmentDataList = append(segmentDataList, segmentData{seg: seg, output: lines})
+	}
+
+	if len(segmentDataList) == 0 {
+		return "", nil
+	}
+
+	// Find maximum number of lines
+	maxLines := 0
+	for _, data := range segmentDataList {
+		if len(data.output) > maxLines {
+			maxLines = len(data.output)
+		}
+	}
+
+	// Combine segments horizontally, applying colors
+	var resultLines []string
+	for lineIdx := 0; lineIdx < maxLines; lineIdx++ {
+		var lineParts []string
+		for _, data := range segmentDataList {
+			if lineIdx < len(data.output) {
+				lineText := data.output[lineIdx]
+				// Apply color to this segment's line
+				if data.seg.color != "" {
+					lineText = colorizeOutput(lineText, data.seg.color)
+				} else if defaultColor != "" {
+					lineText = colorizeOutput(lineText, defaultColor)
+				}
+				lineParts = append(lineParts, lineText)
+			} else {
+				// Pad with spaces if this segment has fewer lines
+				if len(data.output) > 0 {
+					lineParts = append(lineParts, strings.Repeat(" ", len(data.output[0])))
+				}
+			}
+		}
+		resultLines = append(resultLines, strings.Join(lineParts, ""))
+	}
+
+	return strings.Join(resultLines, "\n"), nil
+}
+
 var _ widgets.HandlerFunc = handle
 
 func handle(_ context.Context, payload map[string]any, output chan any, wait *sync.WaitGroup) {
@@ -158,7 +282,19 @@ func handle(_ context.Context, payload map[string]any, output chan any, wait *sy
 		return
 	}
 
-	output <- colorizeOutput(strings.TrimSuffix(figletlib.SprintMsg(toWrite, font, 80, font.Settings(), "left"), "\n"), fontColor)
+	// Check if text contains inline color markers
+	if colorMarkerRegex.MatchString(toWrite) {
+		result, err := applyInlineColors(toWrite, font, fontColor)
+		if err != nil {
+			output <- err
+			wait.Done()
+			return
+		}
+		output <- result
+	} else {
+		// Use default color behavior
+		output <- colorizeOutput(strings.TrimSuffix(figletlib.SprintMsg(toWrite, font, 80, font.Settings(), "left"), "\n"), fontColor)
+	}
 	wait.Done()
 }
 

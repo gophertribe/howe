@@ -9,9 +9,9 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/fatih/color"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
+	"github.com/fatih/color"
 
 	"github.com/victorgama/howe/helpers"
 	"github.com/victorgama/howe/widgets"
@@ -52,7 +52,10 @@ func handle(ctx context.Context, payload map[string]any, output chan any, wait *
 		}
 	}
 
-	cli, err := client.NewClientWithOpts(client.WithHost(dockerSock))
+	cli, err := client.NewClientWithOpts(
+		client.WithHost(dockerSock),
+		client.WithVersion("1.45"),
+	)
 	if err != nil {
 		helpers.ReportError(fmt.Sprintf("docker: %s", err))
 		output <- fmt.Sprintf("Docker: Could not connect on %s", dockerSock)
@@ -64,7 +67,7 @@ func handle(ctx context.Context, payload map[string]any, output chan any, wait *
 	dockerContainers, err := cli.ContainerList(ctx, container.ListOptions{All: true})
 	if err != nil {
 		helpers.ReportError(fmt.Sprintf("docker: %s", err))
-		output <- fmt.Sprintf("Docker: Error enumerating containers.")
+		output <- fmt.Sprintf("Docker: Error enumerating containers: %s", err)
 		wait.Done()
 		return
 	}

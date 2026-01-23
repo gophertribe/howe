@@ -2,11 +2,16 @@ package helpers
 
 import (
 	"log/slog"
+	"os"
 )
 
-var logger slog.Logger
+var logger *slog.Logger
 
-func SetupLogger(log slog.Logger) {
+func init() {
+	logger = slog.New(slog.NewTextHandler(os.Stdout, nil))
+}
+
+func SetupLogger(log *slog.Logger) {
 	logger = log
 }
 
