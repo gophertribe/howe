@@ -1,12 +1,10 @@
 module github.com/victorgama/howe
 
-go 1.24.0
-
-toolchain go1.24.4
+go 1.25.0
 
 require (
 	github.com/arsham/rainbow v1.2.1
-	github.com/cloudfoundry/gosigar v1.3.112
+	github.com/cloudfoundry/gosigar v1.3.118
 	github.com/coreos/go-systemd/v22 v22.6.0
 	github.com/docker/docker v28.5.2+incompatible
 	github.com/fatih/color v1.18.0
@@ -47,7 +45,7 @@ require (
 	go.opentelemetry.io/otel/sdk v1.39.0 // indirect
 	go.opentelemetry.io/otel/sdk/metric v1.39.0 // indirect
 	go.opentelemetry.io/otel/trace v1.39.0 // indirect
-	golang.org/x/sys v0.40.0 // indirect
+	golang.org/x/sys v0.43.0 // indirect
 	golang.org/x/time v0.11.0 // indirect
 	gotest.tools/v3 v3.5.2 // indirect
 )
