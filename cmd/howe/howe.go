@@ -22,6 +22,7 @@ import (
 	_ "github.com/victorgama/howe/widgets/handlers/systemd-services"
 	_ "github.com/victorgama/howe/widgets/handlers/updates"
 	_ "github.com/victorgama/howe/widgets/handlers/uptime"
+	_ "github.com/victorgama/howe/widgets/handlers/usb"
 
 	"github.com/victorgama/howe/config"
 )

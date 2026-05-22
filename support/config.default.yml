@@ -22,6 +22,8 @@ howe:
   #     - "^enp"
   #   show_ips: true
   #   show_mac: false
+  # - type: usb-devices
+  #   vendor_name: "Logitech"
   - type: disks
     disks:
       - '*'

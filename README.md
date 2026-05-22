@@ -222,6 +222,25 @@ Network:
 > **Protip**: If `include` is omitted, all non-loopback interfaces are shown.
 > `show_mac` includes the hardware address in the output.
 
+#### USB Devices
+Lists connected USB devices filtered by vendor/product ID or name regex. Linux only.
+
+```yaml
+  - type: usb-devices
+    vendor_id: "046d"          # optional, hex string
+    product_id: "c52b"         # optional, hex string
+    vendor_name: "Logitech"    # optional, regex
+    product_name: "Mouse"      # optional, regex
+```
+
+**Suggested output:**
+```
+USB:
+    Logitech USB Receiver (046d:c52b)  @ 1-2
+```
+
+> **Notice**: If no filters are provided, all connected USB devices are shown.
+
 #### Print
 Much like [`banner`](#banner), but more discreet.
 

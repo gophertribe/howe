@@ -60,8 +60,33 @@ Network:
 
 ---
 
-### 2. `usb-devices` widget
+### 2. `usb-devices` widget ✅
 List connected USB devices filtered by vendor ID, product ID, vendor name regex, or product name regex.
+
+**Status**: Implemented in `widgets/handlers/usb-devices/`.
+
+**Config:**
+```yaml
+  - type: usb-devices
+    vendor_id: "046d"
+    product_id: "c52b"
+    vendor_name: "Logitech"
+    product_name: "Mouse"
+```
+
+**Output:**
+```
+USB:
+    Logitech USB Receiver (046d:c52b)  @ 1-2
+```
+
+**Implementation notes:**
+- Pure sysfs parsing (`/sys/bus/usb/devices/*/idVendor`, `idProduct`, `manufacturer`, `product`).
+- No CGO/libusb dependency.
+- Skips interface entries (`1-1:1.0`) and lists only device entries.
+- `vendor_name` matches the `manufacturer` string; `product_name` matches the `product` string.
+- Falls back to `USB Device <vid>:<pid>` when string descriptors are unavailable.
+- Returns empty output on non-Linux platforms.
 
 **Proposed config:**
 ```yaml
