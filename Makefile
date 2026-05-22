@@ -33,12 +33,12 @@ build-linux-arm64:
 build-darwin-amd64:
 	@mkdir -p release/
 	@echo "Building howe darwin/amd64 $(VERSION) ($(COMMIT))..."
-	@CGO_ENABLED=0 GOARCH=amd64 GOOS=darwin go build -ldflags="$(LDFLAGS)" -o release/howe-darwin-amd64 ./cmd/howe
+	@CGO_ENABLED=1 GOARCH=amd64 GOOS=darwin go build -ldflags="$(LDFLAGS)" -o release/howe-darwin-amd64 ./cmd/howe
 
 build-darwin-arm64:
 	@mkdir -p release/
 	@echo "Building howe darwin/arm64 $(VERSION) ($(COMMIT))..."
-	@CGO_ENABLED=0 GOARCH=arm64 GOOS=darwin go build -ldflags="$(LDFLAGS)" -o release/howe-darwin-arm64 ./cmd/howe
+	@CGO_ENABLED=1 GOARCH=arm64 GOOS=darwin go build -ldflags="$(LDFLAGS)" -o release/howe-darwin-arm64 ./cmd/howe
 
 ## Release all platforms using GoReleaser (creates GitHub release on tag)
 release:
