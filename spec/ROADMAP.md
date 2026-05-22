@@ -6,8 +6,33 @@
 
 ## Quick Wins (high value, small scope)
 
-### 1. `network-interfaces` widget
+### 1. `network-interfaces` widget ✅
 Show link state, IP addresses, and RX/TX counters for network interfaces, with an optional regex filter.
+
+**Status**: Implemented in `widgets/handlers/network-interfaces/`.
+
+**Config:**
+```yaml
+  - type: network-interfaces
+    include:
+      - "^eth"
+      - "^enp"
+      - "^wlan"
+    show_ips: true   # default: true
+    show_mac: false  # default: false
+```
+
+**Output:**
+```
+Network:
+    eth0:    up  10.0.0.42/24
+    wlan0:   down
+```
+
+**Implementation notes:**
+- Uses `net.Interfaces()` (stdlib) for enumeration and IPs.
+- Reads `/sys/class/net/<iface>/operstate` on Linux; falls back to `FlagUp` on other platforms.
+- Skips `lo` by default unless explicitly matched in `include`.
 
 **Proposed config:**
 ```yaml

@@ -199,6 +199,29 @@ Load displays current system load. It takes no arguments.
   # load average: 0.01, 0.03, 0.00
 ```
 
+#### Network Interfaces
+Lists network interfaces filtered by an optional set of regex patterns.
+
+```yaml
+  - type: network-interfaces
+    include:
+      - "^eth"
+      - "^enp"
+      - "^wlan"
+    show_ips: true   # default: true
+    show_mac: false  # default: false
+```
+
+**Suggested output:**
+```
+Network:
+    eth0:    up  10.0.0.42/24
+    wlan0:   down
+```
+
+> **Protip**: If `include` is omitted, all non-loopback interfaces are shown.
+> `show_mac` includes the hardware address in the output.
+
 #### Print
 Much like [`banner`](#banner), but more discreet.
 

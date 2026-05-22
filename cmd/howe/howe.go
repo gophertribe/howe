@@ -17,6 +17,7 @@ import (
 	_ "github.com/victorgama/howe/widgets/handlers/disks"
 	_ "github.com/victorgama/howe/widgets/handlers/docker"
 	_ "github.com/victorgama/howe/widgets/handlers/load"
+	_ "github.com/victorgama/howe/widgets/handlers/network"
 	_ "github.com/victorgama/howe/widgets/handlers/print"
 	_ "github.com/victorgama/howe/widgets/handlers/systemd-services"
 	_ "github.com/victorgama/howe/widgets/handlers/updates"

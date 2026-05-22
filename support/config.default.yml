@@ -16,6 +16,12 @@ howe:
   #   services:
   #     - docker
   #     - another_service_here
+  # - type: network-interfaces
+  #   include:
+  #     - "^eth"
+  #     - "^enp"
+  #   show_ips: true
+  #   show_mac: false
   - type: disks
     disks:
       - '*'
