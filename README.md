@@ -29,6 +29,32 @@ After downloading:
 ```
 8. Ensure `/etc/update-motd.d/00-howe` is executable
 
+## Updating
+
+Howe can update itself to the latest release from GitHub:
+
+```bash
+howe update
+```
+
+If the binary is in a system directory (e.g. `/usr/local/bin`), re-run with `sudo`:
+
+```bash
+sudo howe update
+```
+
+Additional flags:
+
+- `--dry-run` — check for updates without installing
+- `--tag v0.3.1` — install a specific release (downgrades are supported)
+
+Example:
+
+```bash
+howe update --dry-run
+howe update --tag v0.3.1
+```
+
 ## Configuring
 
 Howe contains several widgets that collects and processes system information

@@ -433,6 +433,31 @@ A tiny widget that only appears when `/var/run/reboot-required` exists.
 
 ---
 
+## CLI Commands
+
+### `howe update` ✅
+Self-update command that queries GitHub releases, downloads the matching binary for the current OS/arch, verifies the SHA256 checksum, and atomically replaces the running executable.
+
+**Status**: Implemented in `internal/updater/` and `cmd/howe/update.go`.
+
+**Usage:**
+```bash
+howe update              # update to latest
+howe update --dry-run    # check only
+howe update --tag v0.3.1 # install specific version
+```
+
+**Key implementation details:**
+- Uses GitHub API (`/releases/latest` or `/releases/tags/<tag>`).
+- Asset names follow the GoReleaser template: `howe_<version>_<Os>_<Arch>`.
+- Checksum verification against `checksums.txt` from the release.
+- Unix inode trick: rename current binary → `.old`, move new binary into place, delete `.old` on success.
+- Rollback on sanity-check failure.
+- Permission detection with `sudo` hint.
+- Windows returns `ErrWindowsUpdate` (not yet implemented).
+
+---
+
 ## Cross-Cutting Concerns
 
 ### Refresh / cache strategy

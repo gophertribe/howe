@@ -40,7 +40,7 @@ func main() {
 	if err != nil {
 		// Colorize error output in red
 		red := color.New(color.FgRed)
-		red.Fprintln(os.Stderr, "Error:", err)
+		_, _ = red.Fprintln(os.Stderr, "Error:", err)
 		os.Exit(1)
 	}
 }
