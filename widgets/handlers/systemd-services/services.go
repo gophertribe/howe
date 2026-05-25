@@ -43,7 +43,7 @@ func handle(ctx context.Context, payload map[string]any, output chan any, wait *
 	conn, err := dbus.NewWithContext(ctx)
 	if err != nil {
 		helpers.ReportError(fmt.Sprintf("systemd-services: %s", err))
-		output <- fmt.Sprintf("systemd-services: Could not connect", err)
+		output <- fmt.Sprintf("systemd-services: could not connect: %s", err)
 		wait.Done()
 		return
 	}
@@ -51,7 +51,7 @@ func handle(ctx context.Context, payload map[string]any, output chan any, wait *
 	list, err := conn.ListUnitsContext(ctx)
 	if err != nil {
 		helpers.ReportError(fmt.Sprintf("systemd-services: %s", err))
-		output <- fmt.Sprintf("systemd-services: Cannot enumerate units.")
+		output <- fmt.Sprintf("systemd-services: cannot enumerate units: %s", err)
 		wait.Done()
 		return
 	}
@@ -62,7 +62,7 @@ func handle(ctx context.Context, payload map[string]any, output chan any, wait *
 		r := "not found"
 		f := color.FgRed
 		for _, s := range list {
-			if strings.Replace(strings.ToLower(s.Name), ".service", "", -1) == strings.ToLower(n) {
+			if strings.ReplaceAll(strings.ToLower(s.Name), ".service", "") == strings.ToLower(n) {
 				f = color.FgWhite
 				r = helpers.Titleize(s.SubState)
 				switch strings.ToLower(s.SubState) {
@@ -81,9 +81,9 @@ func handle(ctx context.Context, payload map[string]any, output chan any, wait *
 	longest := longestString(results)
 
 	for _, v := range results {
-		fmt.Fprintf(w, "    %s    %s\n", padString(v[0], longest), v[1])
+		_, _ = fmt.Fprintf(w, "    %s    %s\n", padString(v[0], longest), v[1])
 	}
-	w.Flush()
+	_ = w.Flush()
 
 	output <- "\nServices:\n" + buf.String()
 	wait.Done()

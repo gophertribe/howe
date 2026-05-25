@@ -1,7 +1,7 @@
 .PHONY: all deps build build-linux-amd64 build-linux-arm64 build-darwin-amd64 build-darwin-arm64 \
         release release-linux-amd64 release-linux-arm64 release-darwin-amd64 release-darwin-arm64 \
         snapshot snapshot-linux-amd64 snapshot-linux-arm64 snapshot-darwin-amd64 snapshot-darwin-arm64 \
-        clean
+        test lint clean
 
 VERSION ?= dev
 COMMIT ?= $(shell git rev-parse --short HEAD 2>/dev/null || echo "unknown")
@@ -84,6 +84,14 @@ snapshot-darwin-amd64:
 snapshot-darwin-arm64:
 	goreleaser build --clean --single-target --id howe -p 1 --snapshot \
 		-o release/howe-darwin-arm64
+
+## Unit tests
+test:
+	gotestsum --format=testname -- ./...
+
+## Linter
+lint:
+	golangci-lint run ./...
 
 ## Clean build artifacts
 clean:

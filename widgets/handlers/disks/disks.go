@@ -153,31 +153,31 @@ func process(items []fsItem) string {
 	nameColumnSizeWithPadding := int(math.Max(13, float64(nameColumnSize+6)))
 	buf := new(bytes.Buffer)
 	w := bufio.NewWriter(buf)
-	fmt.Fprint(w, padRight("Filesystems", " ", nameColumnSizeWithPadding))
-	fmt.Fprint(w, "  Size  Used  Free  Use%\n")
+	_, _ = fmt.Fprint(w, padRight("Filesystems", " ", nameColumnSizeWithPadding))
+	_, _ = fmt.Fprint(w, "  Size  Used  Free  Use%\n")
 	for _, fs := range items {
 		if !fs.found {
-			fmt.Fprintf(w, "  %s not found\n", fs.devName)
+			_, _ = fmt.Fprintf(w, "  %s not found\n", fs.devName)
 			continue
 		}
 		percentUse := int(math.Round(fs.usePercent))
-		fmt.Fprint(w, "  "+padRight(fs.devName, " ", nameColumnSizeWithPadding))
-		fmt.Fprint(w, padLeft(formatSize(fs.size), " ", 4)+"  ")
-		fmt.Fprint(w, padLeft(formatSize(fs.used), " ", 4)+"  ")
-		fmt.Fprint(w, padLeft(formatSize(fs.available), " ", 4)+"  ")
-		fmt.Fprint(w, percentColor(percentUse).SprintFunc()(padLeft(strconv.Itoa(percentUse), " ", 3)+"%"))
-		fmt.Fprint(w, "\n")
+		_, _ = fmt.Fprint(w, "  "+padRight(fs.devName, " ", nameColumnSizeWithPadding))
+		_, _ = fmt.Fprint(w, padLeft(formatSize(fs.size), " ", 4)+"  ")
+		_, _ = fmt.Fprint(w, padLeft(formatSize(fs.used), " ", 4)+"  ")
+		_, _ = fmt.Fprint(w, padLeft(formatSize(fs.available), " ", 4)+"  ")
+		_, _ = fmt.Fprint(w, percentColor(percentUse).SprintFunc()(padLeft(strconv.Itoa(percentUse), " ", 3)+"%"))
+		_, _ = fmt.Fprint(w, "\n")
 
 		totalSize := nameColumnSizeWithPadding + 20
 		usedSize := int(math.Round(float64(totalSize) * (float64(percentUse) / float64(100))))
 
-		fmt.Fprint(w, "  [")
-		fmt.Fprint(w, percentColor(percentUse).SprintFunc()(strings.Repeat("=", usedSize)))
-		fmt.Fprint(w, color.New(color.FgHiBlack).SprintFunc()(strings.Repeat("=", totalSize-usedSize)))
-		fmt.Fprint(w, "]\n")
+		_, _ = fmt.Fprint(w, "  [")
+		_, _ = fmt.Fprint(w, percentColor(percentUse).SprintFunc()(strings.Repeat("=", usedSize)))
+		_, _ = fmt.Fprint(w, color.New(color.FgHiBlack).SprintFunc()(strings.Repeat("=", totalSize-usedSize)))
+		_, _ = fmt.Fprint(w, "]\n")
 	}
 
-	w.Flush()
+	_ = w.Flush()
 	return buf.String()
 }
 
@@ -207,11 +207,4 @@ func percentColor(use int) *color.Color {
 		c = color.FgRed
 	}
 	return color.New(c)
-}
-
-func mapValueOrDefault(m map[string]string, key, def string) string {
-	if v, ok := m[key]; ok {
-		return v
-	}
-	return def
 }

@@ -14,8 +14,8 @@ func FormatSize(size uint64) string {
 	w := bufio.NewWriter(buf)
 
 	if size < 973 {
-		fmt.Fprintf(w, "%3d ", size)
-		w.Flush()
+		_, _ = fmt.Fprintf(w, "%3d ", size)
+		_ = w.Flush()
 		return buf.String()
 	}
 
@@ -35,7 +35,7 @@ func FormatSize(size uint64) string {
 				remain = 0
 			}
 
-			fmt.Fprintf(w, "%d.%d%s", size, remain, ord[o])
+			_, _ = fmt.Fprintf(w, "%d.%d%s", size, remain, ord[o])
 			break
 		}
 
@@ -43,10 +43,10 @@ func FormatSize(size uint64) string {
 			size++
 		}
 
-		fmt.Fprintf(w, "%3d%s", size, ord[o])
+		_, _ = fmt.Fprintf(w, "%3d%s", size, ord[o])
 		break
 	}
 
-	w.Flush()
+	_ = w.Flush()
 	return buf.String()
 }

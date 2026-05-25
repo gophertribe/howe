@@ -62,7 +62,7 @@ func handle(ctx context.Context, payload map[string]any, output chan any, wait *
 		wait.Done()
 		return
 	}
-	defer cli.Close()
+	defer func() { _ = cli.Close() }()
 
 	dockerContainers, err := cli.ContainerList(ctx, container.ListOptions{All: true})
 	if err != nil {
@@ -87,9 +87,9 @@ func handle(ctx context.Context, payload map[string]any, output chan any, wait *
 	longest := longestString(results)
 
 	for _, v := range results {
-		fmt.Fprintf(w, "    %s    %s\n", padString(v[0], longest), v[1])
+		_, _ = fmt.Fprintf(w, "    %s    %s\n", padString(v[0], longest), v[1])
 	}
-	w.Flush()
+	_ = w.Flush()
 
 	output <- "\nDocker:\n" + buf.String()
 	wait.Done()
@@ -117,7 +117,7 @@ func findContainersStatic(containers *[]container.Summary, name string, results 
 	for _, c := range *containers {
 		found := false
 		for _, cn := range c.Names {
-			if strings.Replace(cn, "/", "", -1) == name {
+			if strings.ReplaceAll(cn, "/", "") == name {
 				found = true
 				break
 			}
@@ -157,7 +157,7 @@ func findContainersRegex(containers *[]container.Summary, name string, results *
 		found := false
 		cname := ""
 		for _, cn := range c.Names {
-			currentName := strings.Replace(cn, "/", "", -1)
+			currentName := strings.ReplaceAll(cn, "/", "")
 			if re.Match([]byte(currentName)) {
 				found = true
 				cname = currentName

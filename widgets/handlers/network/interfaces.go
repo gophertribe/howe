@@ -117,9 +117,9 @@ func handle(_ context.Context, payload map[string]any, output chan any, wait *sy
 	longest := longestName(results)
 
 	for _, v := range results {
-		fmt.Fprintf(w, "    %s    %s\n", padName(v[0], longest), v[1])
+		_, _ = fmt.Fprintf(w, "    %s    %s\n", padName(v[0], longest), v[1])
 	}
-	w.Flush()
+	_ = w.Flush()
 
 	output <- "\nNetwork:\n" + buf.String()
 	wait.Done()

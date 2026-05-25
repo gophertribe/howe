@@ -1,0 +1,5 @@
+[tools]
+# Keep in sync with go.mod
+go = "1.25.0"
+golangci-lint = "2.12.2"
+gotestsum = "1.13.0"
